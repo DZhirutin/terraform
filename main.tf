@@ -79,7 +79,66 @@ resource "google_compute_firewall" "mytomcat" {
   source_tags = ["mytomcat"]
   source_ranges = ["0.0.0.0/0"]
 }
+//Provision the server using remote-exec Prod
+resource "null_resource" "prod_provisioner" {
+  triggers = {
+    public_ip = google_compute_instance.Prod.network_interface.0.access_config.0.nat_ip
+  }
 
+  connection {
+    type  = "ssh"
+    host  = google_compute_instance.Prod.network_interface.0.access_config.0.nat_ip
+    user  = "elliot"
+    port  = 22
+    agent = true
+  }
+  // copy our example script to the server
+  provisioner "file" {
+    source      = "prod.sh"
+    destination = "/tmp/prod.sh"
+  }
+// change permissions
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/prod.sh",
+       "/tmp/prod.sh",
+    ]
+  }
+}
+
+//Provision the server using remote-exec Build
+resource "null_resource" "build_provisioner" {
+  triggers = {
+    public_ip = google_compute_instance.Build.network_interface.0.access_config.0.nat_ip
+  }
+
+  connection {
+    type  = "ssh"
+    host  = google_compute_instance.Build.network_interface.0.access_config.0.nat_ip
+    user  = "elliot"
+    port  = 22
+    agent = true
+  }
+  // copy our example script to the server
+  provisioner "file" {
+    source      = "build.sh"
+    destination = "/tmp/build.sh"
+  }
+// change permissions
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/build.sh",
+       "/tmp/build.sh",
+    ]
+  }
+
+
+//Copy file from build to prod
+provisioner "local-exec" {
+    //command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${var.ssh_user}@${aws_instance.example_public.public_ip}:/tmp/public-ip public-ip"
+    command = "rsync -zarvh /tmp/boxfuse-sample-java-war-hello/target/hello-1.0.war elliot@google_compute_instance.Prod.network_interface.0.access_config.0.nat_ip:/var/lib/tomcat9/webapps/"
+  }
+}
 
 
 
