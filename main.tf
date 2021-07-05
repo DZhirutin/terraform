@@ -131,14 +131,14 @@ resource "null_resource" "build_provisioner" {
        "/tmp/build.sh",
     ]
   }
-
+}
 
 //Copy file from build to prod
-provisioner "local-exec" {
+//provisioner "local-exec" {
     //command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${var.ssh_user}@${aws_instance.example_public.public_ip}:/tmp/public-ip public-ip"
-    command = "rsync -zarvh /tmp/boxfuse-sample-java-war-hello/target/hello-1.0.war elliot@google_compute_instance.Prod.network_interface.0.access_config.0.nat_ip:/var/lib/tomcat9/webapps/"
-  }
-}
+  //  command = "rsync -zarvh /tmp/boxfuse-sample-java-war-hello/target/hello-1.0.war elliot@google_compute_instance.Prod.network_interface.0.access_config.0.nat_ip:/var/lib/tomcat9/webapps/"
+  //}
+//}
 
 
 
